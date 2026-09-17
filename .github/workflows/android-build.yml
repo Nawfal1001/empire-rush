@@ -60,6 +60,27 @@ jobs:
           "$ANDROID_HOME/platform-tools/adb" version
           "$ANDROID_HOME/build-tools/34.0.0/aapt2" version
 
+      - name: Create Android debug keystore
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/keys
+          rm -f build/keys/debug.keystore
+          keytool -genkeypair \
+            -keystore build/keys/debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 9999 \
+            -dname "CN=Android Debug,O=Android,C=US" \
+            -deststoretype pkcs12
+          test -s build/keys/debug.keystore
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$GITHUB_WORKSPACE/build/keys/debug.keystore" >> "$GITHUB_ENV"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> "$GITHUB_ENV"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> "$GITHUB_ENV"
+
       - name: Validate standalone Godot project
         shell: bash
         run: |
@@ -71,7 +92,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf build
+          rm -rf build/android
           mkdir -p build/android
           godot --headless --path . --verbose --export-debug "Empire Rush Android" "build/android/empire-rush-debug.apk"
           test -s build/android/empire-rush-debug.apk
@@ -85,4 +106,4 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-# SDK 34 export fix verified against Godot 4.3.
+# SDK 34 + generated debug keystore for Godot 4.3 Android export.
