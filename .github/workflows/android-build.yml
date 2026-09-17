@@ -44,7 +44,6 @@ jobs:
             exit 1
           fi
           yes | "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses >/dev/null || true
-          # Godot 4.3's Android export expects the SDK 34 toolchain.
           "$SDKMANAGER" --sdk_root="$ANDROID_HOME" \
             "platform-tools" \
             "platforms;android-34" \
@@ -106,4 +105,4 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-# SDK 34 + explicit debug keystore for Godot 4.3 Android export.
+# Trigger build after normalized Godot 4.3 Android preset.
