@@ -6,7 +6,6 @@ on:
   workflow_dispatch:
 
 env:
-  GODOT_VERSION: "4.3"
   UPSTREAM_REPO: "https://github.com/Gamowy/Civ2025.git"
 
 jobs:
@@ -15,59 +14,42 @@ jobs:
     runs-on: ubuntu-24.04
     container:
       image: barichello/godot-ci:4.3
-
     steps:
       - name: Checkout Empire Rush
         uses: actions/checkout@v4
-
-      - name: Prepare reusable game foundation
+      - name: Prepare game
         shell: bash
         run: |
           set -euo pipefail
           rm -rf game-src
           git clone --depth 1 "$UPSTREAM_REPO" game-src
-
-          # Keep the upstream MIT license and asset attribution available in the build tree.
           cp game-src/LICENSE ./CIV2025-MIT-LICENSE.txt
           cp game-src/ASSETS.md ./CIV2025-ASSETS.md
-
-          # Turn the reusable foundation into the Empire Rush application identity.
+          mkdir -p game-src/game
+          cp game/EmpireRush.gd game-src/game/EmpireRush.gd
+          cp game/EmpireRush.tscn game-src/game/EmpireRush.tscn
           sed -i 's/name="Civ2025"/name="Empire Rush"/' game-src/project.godot
           sed -i 's/description="Mobile strategy game for Android."/description="Offline-first fast strategy game for Android."/' game-src/project.godot
+          sed -i 's#run/main_scene="[^"]*"#run/main_scene="res://game/EmpireRush.tscn"#' game-src/project.godot
           sed -i 's/package\/unique_name="com.example.civ2025"/package\/unique_name="com.nawfal.empirerush"/' game-src/export_presets.cfg
           sed -i 's/package\/name="Civ2025"/package\/name="Empire Rush"/' game-src/export_presets.cfg
-          sed -i 's/export_path="..\/civ2025.apk"/export_path="..\/empire-rush.apk"/' game-src/export_presets.cfg
-
-      - name: Configure Godot export environment
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p ~/.local/share/godot/export_templates ~/.config/godot
-          mv /root/.config/godot ~/.config/godot || true
-          mv /root/.local/share/godot/export_templates/${GODOT_VERSION}.stable ~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
-          if ! grep -q 'export/android/java_sdk_path' ~/.config/godot/editor_settings-4.3.tres 2>/dev/null; then
-            echo 'export/android/java_sdk_path = "/usr/lib/jvm/java-17-openjdk-amd64"' >> ~/.config/godot/editor_settings-4.3.tres
-          fi
-
-      - name: Validate project
+      - name: Validate Godot project
         shell: bash
         run: |
           set -euo pipefail
           cd game-src
           godot --headless --editor --quit
-
-      - name: Export debug APK
+      - name: Export APK
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p build/android
           cd game-src
           godot --headless --verbose --export-debug "Civ2025 Android" "../build/android/empire-rush-debug.apk"
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: empire-rush-debug-apk
-          path: build/android/empire-rush-debug.apk
+          path: game-src/build/android/empire-rush-debug.apk
           if-no-files-found: error
           retention-days: 14
