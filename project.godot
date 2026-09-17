@@ -1,0 +1,30 @@
+; Empire Rush - standalone Godot 4.3 project
+; Core gameplay is offline-first and uses no upstream runtime dependencies.
+config_version=5
+
+[application]
+config/name="Empire Rush"
+config/description="Fast offline-first empire strategy game for Android."
+run/main_scene="res://game/EmpireRush.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+
+[display]
+
+[display/window]
+size/viewport_width=1280
+size/viewport_height=720
+size/window_width_override=1280
+size/window_height_override=720
+stretch/mode="canvas_items"
+handheld/orientation=1
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.043, 0.063, 0.125, 1)
+
+[gui]
+theme/default_font_multichannel_signed_distance_field=true
+
+[application/run]
+main_scene="res://game/EmpireRush.tscn"
