@@ -135,15 +135,15 @@ func expand() -> void:
         return
 
     var best := Vector2i(-1, -1)
-    var best_distance := 999
+    var best_distance: int = 999
     for y in range(H):
         for x in range(W):
             if territory[y][x] != 0:
                 continue
             var adjacent := false
             for d in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
-                var nx := x + d.x
-                var ny := y + d.y
+                var nx: int = x + d.x
+                var ny: int = y + d.y
                 if nx >= 0 and nx < W and ny >= 0 and ny < H and territory[ny][nx] == 1:
                     adjacent = true
                     break
@@ -210,7 +210,6 @@ func end_turn() -> void:
     gold += 5 + land + towns
     food += max(1, int(land / 2)) + towns
 
-    # Rival AI grows slowly, then becomes more aggressive.
     if turn % 2 == 0:
         rival += 1
     if turn >= 5 and rng.randi_range(0, 99) < 25:
@@ -226,7 +225,6 @@ func end_turn() -> void:
         over = true
         msg = "The rival outgrew your empire."
 
-    # Interstitial only at a natural end-of-turn break, every third break.
     if turn > 1:
         monetization.mark_interstitial_session()
 
