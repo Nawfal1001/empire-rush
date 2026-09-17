@@ -84,3 +84,5 @@ jobs:
           path: build/android/empire-rush-debug.apk
           if-no-files-found: error
           retention-days: 14
+
+# SDK 34 export fix verified against Godot 4.3.
