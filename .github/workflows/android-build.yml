@@ -44,13 +44,21 @@ jobs:
             exit 1
           fi
           yes | "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses >/dev/null || true
-          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+          # Godot 4.3's Android export expects the SDK 34 toolchain.
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" \
+            "platform-tools" \
+            "platforms;android-34" \
+            "build-tools;34.0.0"
+          test -x "$ANDROID_HOME/platform-tools/adb"
+          test -d "$ANDROID_HOME/platforms/android-34"
+          test -x "$ANDROID_HOME/build-tools/34.0.0/aapt2"
           JAVA_BIN="$(command -v java)"
           JAVA_HOME_DETECTED="$(dirname "$(dirname "$(readlink -f "$JAVA_BIN")")")"
           echo "JAVA_HOME=$JAVA_HOME_DETECTED" >> "$GITHUB_ENV"
           echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
           java -version
-          "$ANDROID_HOME/platform-tools/adb" version || true
+          "$ANDROID_HOME/platform-tools/adb" version
+          "$ANDROID_HOME/build-tools/34.0.0/aapt2" version
 
       - name: Validate standalone Godot project
         shell: bash
