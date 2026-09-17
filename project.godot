@@ -25,6 +25,3 @@ environment/defaults/default_clear_color=Color(0.043, 0.063, 0.125, 1)
 
 [gui]
 theme/default_font_multichannel_signed_distance_field=true
-
-[application/run]
-main_scene="res://game/EmpireRush.tscn"
