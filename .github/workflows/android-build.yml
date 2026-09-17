@@ -20,7 +20,7 @@ jobs:
         run: |
           set -euo pipefail
           export HOME=/github/home
-          mkdir -p "$HOME/.local/share/godot/export_templates"
+          mkdir -p "$HOME/.local/share/godot/export_templates" "$HOME/.android"
           TEMPLATE_ROOT=""
           for candidate in \
             /root/.local/share/godot/export_templates/4.3.stable \
@@ -64,10 +64,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p build/keys
-          rm -f build/keys/debug.keystore
+          mkdir -p "$HOME/.android"
+          rm -f "$HOME/.android/debug.keystore"
           keytool -genkeypair \
-            -keystore build/keys/debug.keystore \
+            -keystore "$HOME/.android/debug.keystore" \
             -storepass android \
             -alias androiddebugkey \
             -keypass android \
@@ -76,8 +76,8 @@ jobs:
             -validity 9999 \
             -dname "CN=Android Debug,O=Android,C=US" \
             -deststoretype pkcs12
-          test -s build/keys/debug.keystore
-          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$GITHUB_WORKSPACE/build/keys/debug.keystore" >> "$GITHUB_ENV"
+          test -s "$HOME/.android/debug.keystore"
+          echo "GODOT_ANDROID_KEYSTORE_DEBUG_PATH=$HOME/.android/debug.keystore" >> "$GITHUB_ENV"
           echo "GODOT_ANDROID_KEYSTORE_DEBUG_USER=androiddebugkey" >> "$GITHUB_ENV"
           echo "GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD=android" >> "$GITHUB_ENV"
 
@@ -106,4 +106,4 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-# SDK 34 + generated debug keystore for Godot 4.3 Android export.
+# SDK 34 + explicit debug keystore for Godot 4.3 Android export.
