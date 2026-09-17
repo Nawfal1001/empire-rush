@@ -38,10 +38,19 @@ jobs:
             exit 1
           fi
           cp -a "$TEMPLATE_ROOT" "$HOME/.local/share/godot/export_templates/"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -name sdkmanager -type f 2>/dev/null | head -1)"
+          if [ -z "$SDKMANAGER" ]; then
+            echo "Android sdkmanager was not found."
+            exit 1
+          fi
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses >/dev/null || true
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" "platform-tools" "platforms;android-33" "build-tools;33.0.2"
           JAVA_BIN="$(command -v java)"
           JAVA_HOME_DETECTED="$(dirname "$(dirname "$(readlink -f "$JAVA_BIN")")")"
           echo "JAVA_HOME=$JAVA_HOME_DETECTED" >> "$GITHUB_ENV"
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
           java -version
+          "$ANDROID_HOME/platform-tools/adb" version || true
 
       - name: Validate standalone Godot project
         shell: bash
