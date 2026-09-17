@@ -7,6 +7,8 @@ on:
 
 env:
   UPSTREAM_REPO: "https://github.com/Gamowy/Civ2025.git"
+  ADMOB_PLUGIN_REPO: "https://github.com/poingstudios/godot-admob-plugin.git"
+  ADMOB_PLUGIN_TAG: "v4.3.1"
 
 jobs:
   android-debug:
@@ -18,22 +20,30 @@ jobs:
       - name: Checkout Empire Rush
         uses: actions/checkout@v4
 
-      - name: Prepare game
+      - name: Prepare game and AdMob plugin
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf game-src
+          rm -rf game-src admob-src
           git clone --depth 1 "$UPSTREAM_REPO" game-src
+          git clone --depth 1 --branch "$ADMOB_PLUGIN_TAG" "$ADMOB_PLUGIN_REPO" admob-src
+
           cp game-src/LICENSE ./CIV2025-MIT-LICENSE.txt
           cp game-src/ASSETS.md ./CIV2025-ASSETS.md
           mkdir -p game-src/game
           cp game/EmpireRush.gd game-src/game/EmpireRush.gd
           cp game/EmpireRush.tscn game-src/game/EmpireRush.tscn
+          cp game/Monetization.gd game-src/game/Monetization.gd
+
+          mkdir -p game-src/addons
+          cp -a admob-src/platforms/godot_editor/addons/admob game-src/addons/admob
+
           sed -i 's/name="Civ2025"/name="Empire Rush"/' game-src/project.godot
           sed -i 's/description="Mobile strategy game for Android."/description="Offline-first fast strategy game for Android."/' game-src/project.godot
           sed -i 's#run/main_scene="[^"]*"#run/main_scene="res://game/EmpireRush.tscn"#' game-src/project.godot
           sed -i 's/package\/unique_name="com.example.civ2025"/package\/unique_name="com.nawfal.empirerush"/' game-src/export_presets.cfg
           sed -i 's/package\/name="Civ2025"/package\/name="Empire Rush"/' game-src/export_presets.cfg
+          printf '\n[editor_plugins]\nenabled=PackedStringArray("res://addons/admob/plugin.cfg")\n' >> game-src/project.godot
           rm -rf game-src/.godot
 
       - name: Configure Godot Android toolchain
@@ -62,11 +72,9 @@ jobs:
           JAVA_BIN="$(command -v java)"
           JAVA_HOME_DETECTED="$(dirname "$(dirname "$(readlink -f "$JAVA_BIN")")")"
           echo "JAVA_HOME=$JAVA_HOME_DETECTED" >> "$GITHUB_ENV"
-          echo "JAVA_HOME detected as $JAVA_HOME_DETECTED"
           java -version
-          ls -la "$HOME/.local/share/godot/export_templates/4.3.stable"
 
-      - name: Validate Godot project
+      - name: Validate Godot project and let AdMob fetch Android dependency
         shell: bash
         run: |
           set -euo pipefail
