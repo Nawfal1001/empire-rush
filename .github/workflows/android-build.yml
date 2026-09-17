@@ -17,6 +17,7 @@ jobs:
     steps:
       - name: Checkout Empire Rush
         uses: actions/checkout@v4
+
       - name: Prepare game
         shell: bash
         run: |
@@ -33,12 +34,45 @@ jobs:
           sed -i 's#run/main_scene="[^"]*"#run/main_scene="res://game/EmpireRush.tscn"#' game-src/project.godot
           sed -i 's/package\/unique_name="com.example.civ2025"/package\/unique_name="com.nawfal.empirerush"/' game-src/export_presets.cfg
           sed -i 's/package\/name="Civ2025"/package\/name="Empire Rush"/' game-src/export_presets.cfg
+          rm -rf game-src/.godot
+
+      - name: Configure Godot Android toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HOME=/github/home
+          mkdir -p "$HOME/.local/share/godot/export_templates"
+          TEMPLATE_ROOT=""
+          for candidate in \
+            /root/.local/share/godot/export_templates/4.3.stable \
+            /root/.local/share/godot/export_templates/4.3.stable.mono \
+            /usr/local/share/godot/export_templates/4.3.stable \
+            /usr/share/godot/export_templates/4.3.stable; do
+            if [ -d "$candidate" ]; then
+              TEMPLATE_ROOT="$candidate"
+              break
+            fi
+          done
+          if [ -z "$TEMPLATE_ROOT" ]; then
+            echo "Godot 4.3 export templates were not found in the CI image."
+            find /root /usr/local /usr/share -path '*export_templates*' -maxdepth 8 -type f 2>/dev/null | head -50 || true
+            exit 1
+          fi
+          cp -a "$TEMPLATE_ROOT" "$HOME/.local/share/godot/export_templates/"
+          JAVA_BIN="$(command -v java)"
+          JAVA_HOME_DETECTED="$(dirname "$(dirname "$(readlink -f "$JAVA_BIN")")")"
+          echo "JAVA_HOME=$JAVA_HOME_DETECTED" >> "$GITHUB_ENV"
+          echo "JAVA_HOME detected as $JAVA_HOME_DETECTED"
+          java -version
+          ls -la "$HOME/.local/share/godot/export_templates/4.3.stable"
+
       - name: Validate Godot project
         shell: bash
         run: |
           set -euo pipefail
           cd game-src
           godot --headless --editor --quit
+
       - name: Export APK
         shell: bash
         run: |
@@ -46,6 +80,7 @@ jobs:
           mkdir -p build/android
           cd game-src
           godot --headless --verbose --export-debug "Civ2025 Android" "../build/android/empire-rush-debug.apk"
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
