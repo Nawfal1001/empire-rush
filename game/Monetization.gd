@@ -2,13 +2,11 @@ extends Node
 
 # Empire Rush AdMob configuration.
 # App ID: ca-app-pub-7670901970366595~1941761842
-# Rewarded: ca-app-pub-7670901970366595/4208832534
+# Rewarded: ca-app-pub-7670901970366595/4376353493
 # Interstitial: ca-app-pub-7670901970366595/4208832534
-# NOTE: The Rewarded ID must be corrected before production wiring because the
-# current supplied IDs identify the same unit. See GAME_PLAN.md / README.md.
 
 const ADMOB_APP_ID := "ca-app-pub-7670901970366595~1941761842"
-const REWARDED_AD_UNIT_ID := "ca-app-pub-7670901970366595/4208832534"
+const REWARDED_AD_UNIT_ID := "ca-app-pub-7670901970366595/4376353493"
 const INTERSTITIAL_AD_UNIT_ID := "ca-app-pub-7670901970366595/4208832534"
 
 var rewarded_ready := false
@@ -21,8 +19,6 @@ func _ready() -> void:
     pass
 
 func request_rewarded() -> bool:
-    # SDK-specific loading/showing is supplied by the Android AdMob adapter.
-    # Keep this API stable for the game layer.
     return rewarded_ready
 
 func request_interstitial() -> bool:
