@@ -5,11 +5,6 @@ on:
     branches: [main]
   workflow_dispatch:
 
-env:
-  UPSTREAM_REPO: "https://github.com/Gamowy/Civ2025.git"
-  ADMOB_PLUGIN_REPO: "https://github.com/poingstudios/godot-admob-plugin.git"
-  ADMOB_PLUGIN_TAG: "v4.3.1"
-
 jobs:
   android-debug:
     name: Build Android APK
@@ -19,32 +14,6 @@ jobs:
     steps:
       - name: Checkout Empire Rush
         uses: actions/checkout@v4
-
-      - name: Prepare game and AdMob plugin
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -rf game-src admob-src
-          git clone --depth 1 "$UPSTREAM_REPO" game-src
-          git clone --depth 1 --branch "$ADMOB_PLUGIN_TAG" "$ADMOB_PLUGIN_REPO" admob-src
-
-          cp game-src/LICENSE ./CIV2025-MIT-LICENSE.txt
-          cp game-src/ASSETS.md ./CIV2025-ASSETS.md
-          mkdir -p game-src/game
-          cp game/EmpireRush.gd game-src/game/EmpireRush.gd
-          cp game/EmpireRush.tscn game-src/game/EmpireRush.tscn
-          cp game/Monetization.gd game-src/game/Monetization.gd
-
-          mkdir -p game-src/addons
-          cp -a admob-src/platforms/godot_editor/addons/admob game-src/addons/admob
-
-          sed -i 's/name="Civ2025"/name="Empire Rush"/' game-src/project.godot
-          sed -i 's/description="Mobile strategy game for Android."/description="Offline-first fast strategy game for Android."/' game-src/project.godot
-          sed -i 's#run/main_scene="[^"]*"#run/main_scene="res://game/EmpireRush.tscn"#' game-src/project.godot
-          sed -i 's/package\/unique_name="com.example.civ2025"/package\/unique_name="com.nawfal.empirerush"/' game-src/export_presets.cfg
-          sed -i 's/package\/name="Civ2025"/package\/name="Empire Rush"/' game-src/export_presets.cfg
-          printf '\n[editor_plugins]\nenabled=PackedStringArray("res://addons/admob/plugin.cfg")\n' >> game-src/project.godot
-          rm -rf game-src/.godot
 
       - name: Configure Godot Android toolchain
         shell: bash
@@ -64,7 +33,7 @@ jobs:
             fi
           done
           if [ -z "$TEMPLATE_ROOT" ]; then
-            echo "Godot 4.3 export templates were not found in the CI image."
+            echo "Godot 4.3 export templates were not found."
             find /root /usr/local /usr/share -path '*export_templates*' -maxdepth 8 -type f 2>/dev/null | head -50 || true
             exit 1
           fi
@@ -74,25 +43,27 @@ jobs:
           echo "JAVA_HOME=$JAVA_HOME_DETECTED" >> "$GITHUB_ENV"
           java -version
 
-      - name: Validate Godot project and let AdMob fetch Android dependency
+      - name: Validate standalone Godot project
         shell: bash
         run: |
           set -euo pipefail
-          cd game-src
-          godot --headless --editor --quit
+          rm -rf .godot
+          godot --headless --path . --editor --quit --display-driver headless
 
-      - name: Export APK
+      - name: Export Android APK
         shell: bash
         run: |
           set -euo pipefail
+          rm -rf build
           mkdir -p build/android
-          cd game-src
-          godot --headless --verbose --export-debug "Civ2025 Android" "../build/android/empire-rush-debug.apk"
+          godot --headless --path . --verbose --export-debug "Empire Rush Android" "build/android/empire-rush-debug.apk"
+          test -s build/android/empire-rush-debug.apk
+          ls -lh build/android/empire-rush-debug.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: empire-rush-debug-apk
-          path: game-src/build/android/empire-rush-debug.apk
+          path: build/android/empire-rush-debug.apk
           if-no-files-found: error
           retention-days: 14
