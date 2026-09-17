@@ -3,14 +3,14 @@
 An offline-first mobile strategy game for Android.
 
 ## Current direction
-Empire Rush is being developed from the legally reusable Civ2025 codebase under its MIT license, while creating a distinct game identity, gameplay loop, UI and commercial asset set.
-
-The target is a fast strategy experience that can be played without an internet connection. Online connectivity is reserved for optional monetization and service features.
+Empire Rush is being developed as a standalone Godot project with original gameplay/UI code and no upstream runtime dependencies. The current build is designed to be playable offline; online connectivity is reserved for optional monetization and service features.
 
 ## Development status
-MVP architecture and commercial/IP plan established. Next milestone: import the reusable game foundation, audit assets, implement the first differentiated vertical slice, and produce an Android APK through CI.
+Standalone MVP vertical slice is implemented. Android CI is being used to validate the project and produce an installable debug APK.
 
 ## Licensing
-The upstream Civ2025 source is MIT licensed. Its license and copyright notice are retained. Third-party assets from the upstream project are being audited individually and will not be treated as MIT by default.
+The current standalone build avoids bundling upstream Civ2025 runtime assets. Any future third-party assets will be audited individually and their licenses retained.
 
 See `GAME_PLAN.md` for the product and monetization direction.
+
+<!-- CI trigger: Android export preset key correction -->
